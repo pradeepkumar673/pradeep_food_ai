@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-body text-gray-800 bg-food-cream;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-display font-bold;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-food-orange hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
+  }
+  
+  .btn-secondary {
+    @apply bg-food-green hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-food-orange text-food-orange hover:bg-food-orange hover:text-white font-medium py-2 px-4 rounded-lg transition-all duration-200;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-food-orange focus:ring-2 focus:ring-orange-200 outline-none transition-all duration-200 bg-white;
+  }
+  
+  .tag-chip {
+    @apply inline-flex items-center gap-2 bg-orange-100 text-food-orange px-4 py-2 rounded-full font-medium transition-all duration-200 hover:bg-orange-200;
+  }
+  
+  .recipe-card {
+    @apply bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden border border-gray-100;
+  }
+  
+  .mood-btn {
+    @apply px-4 py-2 rounded-full border-2 transition-all duration-200 font-medium hover:scale-105 active:scale-95;
+  }
+  
+  .mood-btn.active {
+    @apply border-food-orange bg-orange-50 text-food-orange;
+  }
+  
+  .mood-btn.inactive {
+    @apply border-gray-200 text-gray-600 hover:border-gray-300;
+  }
+  
+  .skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-food-orange rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-orange-600;
+}
