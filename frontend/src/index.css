@@ -2,16 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom base styles */
 @layer base {
-  body {
-    @apply font-body text-gray-800 bg-food-cream;
+  html {
+    font-family: 'Inter', sans-serif;
   }
   
-  h1, h2, h3, h4 {
-    @apply font-display font-bold;
+  body {
+    @apply bg-food-cream text-gray-800 antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    @apply font-bold;
   }
 }
 
+/* Custom component styles */
 @layer components {
   .btn-primary {
     @apply bg-food-orange hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
@@ -52,6 +60,30 @@
   .skeleton {
     @apply animate-pulse bg-gray-200 rounded;
   }
+  
+  /* Utility classes */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
+/* Custom styles */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  @apply bg-gray-900 text-white;
 }
 
 /* Custom scrollbar */
@@ -60,7 +92,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+  @apply bg-gray-100 dark:bg-gray-800;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -69,4 +101,42 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-orange-600;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Focus styles */
+*:focus {
+  @apply outline-none ring-2 ring-food-orange ring-opacity-50;
+}
+
+/* Selection styles */
+::selection {
+  @apply bg-food-orange text-white;
 }
