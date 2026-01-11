@@ -7,7 +7,7 @@ import { Search, X, Filter, ChefHat, Clock, TrendingUp, Sparkles, Loader } from 
 
 const Dashboard = () => {
   const [ingredients, setIngredients] = useState('')
-  const [ingredientTags, setIngredientTags] = useState(['chicken', 'rice', 'tomato'])
+  const [ingredientTags, setIngredientTags] = useState([])
   const [suggestions, setSuggestions] = useState([])
   const [selectedFilter, setSelectedFilter] = useState(null)
   const [recipes, setRecipes] = useState([])
@@ -17,11 +17,30 @@ const Dashboard = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [userIngredients, setUserIngredients] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
+
+  // Add this useEffect in Dashboard component
+useEffect(() => {
+  const checkAPIStatus = async () => {
+    try {
+      const response = await axios.get('/api/health');
+      console.log('API Status:', response.data);
+      
+      if (!response.data.apis.spoonacular) {
+        toast.error('Spoonacular API not configured. Using AI fallback.', {
+          duration: 5000
+        });
+      }
+    } catch (error) {
+      console.error('API health check failed:', error);
+    }
+  };
+  
+  checkAPIStatus();
+}, []);
   
   const suggestionTimeoutRef = useRef(null)
   const inputRef = useRef(null)
 
-  // Filters with improved descriptions
   const filters = [
     { key: 'quick', label: 'Quick', icon: '⚡', description: 'Under 30 mins', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
     { key: 'healthy', label: 'Healthy', icon: '🥗', description: 'Nutritious choices', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
@@ -33,15 +52,14 @@ const Dashboard = () => {
     { key: 'sweet', label: 'Sweet', icon: '🍰', description: 'Desserts & treats', color: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200' }
   ]
 
-  // Popular ingredient suggestions
   const popularIngredients = [
     'chicken', 'rice', 'pasta', 'tomato', 'onion', 'garlic', 'egg', 'cheese',
     'potato', 'carrot', 'broccoli', 'spinach', 'mushroom', 'bell pepper',
     'lemon', 'lime', 'ginger', 'soy sauce', 'olive oil', 'butter', 'milk',
-    'flour', 'sugar', 'honey', 'bread', 'beans', 'lentils', 'tofu', 'fish'
+    'flour', 'sugar', 'honey', 'bread', 'beans', 'lentils', 'tofu', 'fish',
+    'salt', 'pepper', 'oil', 'water', 'strawberry', 'apple', 'banana'
   ]
 
-  // Get ingredient suggestions from API
   const fetchSuggestions = async (query) => {
     if (query.length < 2) {
       setSuggestions([])
@@ -56,7 +74,6 @@ const Dashboard = () => {
       if (response.data.suggestions && response.data.suggestions.length > 0) {
         setSuggestions(response.data.suggestions)
       } else {
-        // Fallback to local matching
         const filtered = popularIngredients.filter(ing =>
           ing.toLowerCase().includes(query.toLowerCase()) &&
           !ingredientTags.includes(ing)
@@ -64,8 +81,6 @@ const Dashboard = () => {
         setSuggestions(filtered.slice(0, 5))
       }
     } catch (error) {
-      console.error('Error fetching suggestions:', error)
-      // Local fallback
       const filtered = popularIngredients.filter(ing =>
         ing.toLowerCase().includes(query.toLowerCase()) &&
         !ingredientTags.includes(ing)
@@ -74,17 +89,14 @@ const Dashboard = () => {
     }
   }
 
-  // Handle ingredient input with debouncing
   const handleIngredientChange = (e) => {
     const value = e.target.value
     setIngredients(value)
     
-    // Clear previous timeout
     if (suggestionTimeoutRef.current) {
       clearTimeout(suggestionTimeoutRef.current)
     }
     
-    // Set new timeout for suggestions
     suggestionTimeoutRef.current = setTimeout(() => {
       if (value.trim()) {
         fetchSuggestions(value.trim())
@@ -163,7 +175,7 @@ const Dashboard = () => {
           toast(
             <div className="flex items-center gap-2">
               <Sparkles className="text-purple-500" />
-              <span>Using AI-powered suggestions for your ingredients!</span>
+              <span>Using AI-powered suggestions!</span>
             </div>,
             { duration: 4000 }
           )
@@ -189,29 +201,6 @@ const Dashboard = () => {
     setModalOpen(true)
   }
 
-  // Load initial sample recipes
-  useEffect(() => {
-    const fetchInitialRecipes = async () => {
-      try {
-        const response = await axios.get('/api/recipes/search', {
-          params: {
-            ingredients: 'chicken,rice,tomato',
-            number: 3
-          }
-        })
-        
-        if (response.data.recipes && response.data.recipes.length > 0) {
-          setRecipes(response.data.recipes.slice(0, 3))
-        }
-      } catch (error) {
-        console.log('Using sample recipes')
-      }
-    }
-    
-    fetchInitialRecipes()
-  }, [])
-
-  // Load saved ingredients from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('lastIngredients')
     if (saved) {
@@ -220,20 +209,16 @@ const Dashboard = () => {
         if (Array.isArray(parsed) && parsed.length > 0) {
           setIngredientTags(parsed)
         }
-      } catch (e) {
-        console.error('Error loading saved ingredients:', e)
-      }
+      } catch (e) {}
     }
   }, [])
 
-  // Save ingredients to localStorage
   useEffect(() => {
     if (ingredientTags.length > 0) {
       localStorage.setItem('lastIngredients', JSON.stringify(ingredientTags))
     }
   }, [ingredientTags])
 
-  // Click outside to close suggestions
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (inputRef.current && !inputRef.current.contains(event.target)) {
@@ -253,7 +238,6 @@ const Dashboard = () => {
         {/* Left Sidebar */}
         <div className="lg:w-1/4">
           <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
-            {/* Logo/Title */}
             <div className="mb-8">
               <h2 className="text-2xl font-display font-bold mb-2 flex items-center gap-3">
                 <ChefHat className="text-food-orange" />
@@ -264,7 +248,6 @@ const Dashboard = () => {
               </p>
             </div>
 
-            {/* Ingredients Input */}
             <div className="mb-8 relative" ref={inputRef}>
               <label className="block text-lg font-semibold mb-4 flex items-center gap-2">
                 <Search size={20} />
@@ -294,7 +277,6 @@ const Dashboard = () => {
                 )}
               </div>
               
-              {/* Suggestions Dropdown */}
               {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                   {suggestions.map((suggestion, index) => (
@@ -315,7 +297,6 @@ const Dashboard = () => {
               </p>
             </div>
 
-            {/* Ingredient Tags */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
                 <span className="font-medium">Added Ingredients ({ingredientTags.length})</span>
@@ -349,13 +330,12 @@ const Dashboard = () => {
                 
                 {ingredientTags.length === 0 && (
                   <div className="text-gray-500 dark:text-gray-400 text-center w-full py-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-                    No ingredients added yet. Start typing above!
+                    No ingredients added yet
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Popular Ingredients */}
             <div className="mb-8">
               <label className="block text-sm font-medium mb-3 text-gray-600 dark:text-gray-400">
                 Popular Ingredients
@@ -378,7 +358,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Mood Filters */}
             <div className="mb-8">
               <label className="block text-lg font-semibold mb-4 flex items-center gap-2">
                 <Filter size={20} />
@@ -403,7 +382,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Search Button */}
             <button
               onClick={handleSearch}
               disabled={loading || ingredientTags.length === 0}
@@ -428,7 +406,6 @@ const Dashboard = () => {
               )}
             </button>
 
-            {/* Tips */}
             <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
               <h4 className="font-semibold mb-2 flex items-center gap-2">
                 <Sparkles size={16} className="text-blue-500" />
@@ -436,9 +413,9 @@ const Dashboard = () => {
               </h4>
               <ul className="text-sm space-y-2 text-gray-600 dark:text-gray-400">
                 <li>• Start with 2-3 main ingredients</li>
-                <li>• Add spices (garlic, onion, herbs) for better matches</li>
-                <li>• Try the "quick" filter for 30-min meals</li>
-                <li>• Click any recipe for detailed view & customization</li>
+                <li>• Add spices for better matches</li>
+                <li>• Try "quick" filter for 30-min meals</li>
+                <li>• Click recipes for detailed view</li>
               </ul>
             </div>
           </div>
@@ -478,7 +455,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Recipe Grid */}
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
@@ -504,15 +480,14 @@ const Dashboard = () => {
                 ))}
               </div>
               
-              {/* AI Notice */}
-              {recipes.some(r => r.source === 'gemini_ai' || r.source === 'ai_generated') && (
+              {recipes.some(r => r.source === 'gemini_ai') && (
                 <div className="mt-8 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
                   <div className="flex items-center gap-3">
                     <Sparkles className="text-purple-500" size={24} />
                     <div>
                       <h4 className="font-bold text-purple-700 dark:text-purple-300">AI-Powered Suggestions</h4>
                       <p className="text-sm text-purple-600 dark:text-purple-400">
-                        Some recipes were generated by AI based on your ingredients. Feel free to customize them!
+                        Some recipes were AI-generated based on your exact ingredients.
                       </p>
                     </div>
                   </div>
@@ -526,7 +501,7 @@ const Dashboard = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4">Finding recipes...</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                Searching through thousands of recipes to find the perfect match for your ingredients.
+                Searching through recipes to find perfect matches for your ingredients.
               </p>
             </div>
           ) : (
@@ -536,23 +511,11 @@ const Dashboard = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4">No recipes found yet</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                Try adding more ingredients or using different combinations. Even simple ingredients can make amazing meals!
+                Add ingredients above to find recipes you can make right now!
               </p>
-              <div className="flex flex-wrap justify-center gap-3 mb-8">
-                {['pasta', 'eggs', 'cheese', 'bread', 'potato', 'onion'].map((ing) => (
-                  <button
-                    key={ing}
-                    onClick={() => addIngredient(ing)}
-                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors"
-                  >
-                    + {ing}
-                  </button>
-                ))}
-              </div>
             </div>
           )}
 
-          {/* Stats */}
           {recipes.length > 0 && !loading && (
             <div className="mt-12 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
               <h3 className="text-xl font-bold mb-4">Search Results</h3>
@@ -585,7 +548,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Recipe Modal */}
       {modalOpen && selectedRecipe && (
         <RecipeModal
           recipeId={selectedRecipe.id}
